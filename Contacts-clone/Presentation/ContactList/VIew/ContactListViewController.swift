@@ -12,16 +12,9 @@ import RxSwift
 
 final class ContactListViewController: UIViewController {
   private let disposeBag = DisposeBag()
-  private let viewModel: ContactListViewModelType
+  private let viewModel: ContactListViewModel
   
-  private let contactListView: UITableView = {
-    let tableView = UITableView()
-    tableView.separatorStyle = .none
-    tableView.backgroundColor = .blue
-    return tableView
-  }()
-  
-  init(viewModel: ContactListViewModelType) {
+  init(viewModel: ContactListViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -32,34 +25,103 @@ final class ContactListViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    setNavigation()
     setSubViews()
     setConstraints()
-    bind()
+    bindViewModel()
+    bindContactListView()
   }
+  
+  // MARK: - UI
+  
+  private lazy var createButton = UIBarButtonItem(image: UIImage(systemName: "plus"),
+                                                  style: .plain,
+                                                  target: self,
+                                                  action: nil)
+  
+  private let searchController: UISearchController = {
+    let controller = UISearchController(searchResultsController: nil)
+    controller.hidesNavigationBarDuringPresentation = true
+    return controller
+  }()
+  
+  private lazy var contactListView: UITableView = {
+    let tableView = UITableView()
+    tableView.refreshControl = UIRefreshControl()
+    tableView.separatorInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
+    tableView.translatesAutoresizingMaskIntoConstraints = false
+    tableView.rowHeight = 44
+    tableView.register(ContactCell.self, forCellReuseIdentifier: ContactCell.identifier)
+    return tableView
+  }()
 }
 
 // MARK: - UI Functions
-extension ContactListViewController {
+
+private extension ContactListViewController {
+  func setNavigation() {
+    navigationItem.rightBarButtonItem = createButton
+    navigationItem.searchController = searchController
+    navigationItem.hidesSearchBarWhenScrolling = false
+  }
+  
   func setSubViews() {
     view.backgroundColor = .systemBackground
-    // view.addSubview(contactListView)
+    view.addSubview(contactListView)
   }
   
   func setConstraints() {
-    
+    NSLayoutConstraint.activate([
+      contactListView.topAnchor.constraint(equalTo: view.topAnchor),
+      contactListView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      contactListView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      contactListView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+    ])
   }
 }
 
 // MARK: - Bind Functions
-extension ContactListViewController {
-  func bind() {
-    bindLifeCycle()
+
+private extension ContactListViewController {
+  func bindViewModel() {
+    let viewWillAppear = rx.viewWillAppear
+      .asSignal()
+    let pull = contactListView.refreshControl!.rx
+      .controlEvent(.valueChanged)
+      .asSignal()
+    
+    let input = ContactListViewModel.Input(trigger: Signal.merge(viewWillAppear, pull),
+                                           createContactTrigger: createButton.rx.tap.asDriver())
+    let output = viewModel.transform(input: input)
+    
+    output.title
+      .drive(navigationItem.rx.title)
+      .disposed(by: disposeBag)
+    
+    output.contactList
+      .drive(contactListView.rx.items(cellIdentifier: ContactCell.identifier,
+                                           cellType: ContactCell.self)) { row, contact, cell in
+        cell.bind(with: contact)
+      }
+      .disposed(by: disposeBag)
+    
+    output.fetching
+      .drive(contactListView.refreshControl!.rx.isRefreshing)
+      .disposed(by: disposeBag)
+    
+    output.createContact
+      .drive()
+      .disposed(by: disposeBag)
   }
   
-  func bindLifeCycle() {
-    rx.viewWillAppear
-      .bind(to: viewModel.input.viewWillAppear)
-      .disposed(by: disposeBag)
+  func bindContactListView() {
+    Observable.zip(contactListView.rx.modelSelected(Contact.self),
+               contactListView.rx.itemSelected)
+    .bind(onNext: { [weak self] contact, indexPath in
+      guard let self = self else { return }
+      self.contactListView.deselectRow(at: indexPath, animated: true)
+    })
+    .disposed(by: disposeBag)
   }
 }
 
