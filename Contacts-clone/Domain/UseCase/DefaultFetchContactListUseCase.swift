@@ -16,7 +16,16 @@ final class DefaultFetchContactListUseCase: FetchContactListUseCase {
     self.contactRepository = contactRepository
   }
   
-  func fetchContactList() -> RxSwift.Observable<Result<[Contact], Error>> {
+  func execute() -> Observable<[Contact]> {
     return contactRepository.fetchContactList()
+      .map { result -> [Contact] in
+        switch result {
+        case .success(let model):
+          return model
+        case .failure(let error):
+          print(error.localizedDescription)
+          return []
+        }
+      }
   }
 }

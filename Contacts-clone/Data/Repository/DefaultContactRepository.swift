@@ -15,7 +15,14 @@ final class DefaultContactRepository {
 
 extension DefaultContactRepository: ContactRepository {
   func fetchContactList() -> Observable<Result<[Contact], Error>> {
-    // fetch
-    return .empty()
+    return Observable.just(.success([Contact(id: UUID(),
+                                             firstName: "Kim",
+                                             lastName: "Young Gyun",
+                                             number: "010-9428-0039"),
+                                     Contact(id: UUID(),
+                                             firstName: "Lee",
+                                             lastName: "Gang",
+                                             company: "KAKAO",
+                                             number: "010-1234-1234")]))
   }
 }

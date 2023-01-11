@@ -8,6 +8,7 @@
 import Foundation
 
 struct Contact {
+  var id: UUID
   var firstName: String?
   var lastName: String?
   var company: String?

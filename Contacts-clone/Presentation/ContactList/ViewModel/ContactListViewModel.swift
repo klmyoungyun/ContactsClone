@@ -10,48 +10,49 @@ import Foundation
 import RxCocoa
 import RxSwift
 
-protocol ContactListViewModelInput {
-  var viewWillAppear: PublishRelay<Void> { get }
-}
 
-protocol ContactListViewModelOutput {
-  var activate: Driver<Bool> { get }
-  var contactList: Driver<[Contact]> { get }
-}
-
-protocol ContactListViewModelType: ContactListViewModelInput,
-                                   ContactListViewModelOutput {
-  var input: ContactListViewModelInput { get }
-  var output: ContactListViewModelOutput { get }
-}
-
-final class ContactListViewModel: ContactListViewModelType {
+final class ContactListViewModel: ViewModelType {
   private let disposeBag = DisposeBag()
   private final let fetchContactListUseCase: FetchContactListUseCase
   
-  var input: ContactListViewModelInput { return self }
-  var output: ContactListViewModelOutput { return self }
+  struct Input {
+    var trigger: Signal<Void>
+    var createContactTrigger: Driver<Void>
+  }
   
-  // MARK: - INPUT
-  var viewWillAppear: PublishRelay<Void>
-  
-  // MARK: - OUTPUT
-  var activate: Driver<Bool>
-  var contactList: Driver<[Contact]>
-  
+  struct Output {
+    var title: Driver<String>
+    var fetching: Driver<Bool>
+    var createContact: Driver<Void>
+    var contactList: Driver<[Contact]>
+  }
   
   // MARK: - Init
   
   init(fetchContactListUseCase: FetchContactListUseCase) {
     self.fetchContactListUseCase = fetchContactListUseCase
-    
-    var fetching = PublishRelay<Void>()
-    var contacts = BehaviorRelay<[Contact]>(value: [])
-    var activating = BehaviorRelay<Bool>(value: false)
+  }
   
-    viewWillAppear = fetching
-    activate = activating.asDriver(onErrorJustReturn: false)
-    contactList = contacts.asDriver(onErrorJustReturn: [])
+  func transform(input: Input) -> Output {
+    let activityIndicator = ActivityIndicator()
+    let errorTracker = ErrorTracker()
+    
+    let title = Driver<String>.just("Contacts")
+    let fetching = activityIndicator.asDriver()
+    let contactList = input.trigger.flatMapLatest {
+      return self.fetchContactListUseCase.execute()
+        .trackActivity(activityIndicator)
+        .trackError(errorTracker)
+        .asDriverOnErrorJustComplete()
+        .asDriver()
+    }
+    let createContact = input.createContactTrigger
+      .do(onNext: { print($0) })
+    
+    return Output(title: title,
+                  fetching: fetching,
+                  createContact: createContact,
+                  contactList: contactList)
   }
 }
 
