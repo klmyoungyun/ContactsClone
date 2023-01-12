@@ -18,8 +18,6 @@ protocol Coordinator: AnyObject {
   /// Define flow type
   var type: CoordinatorType { get }
   
-  init(_ navigationController: UINavigationController)
-  
   /// Start logic
   func start()
   

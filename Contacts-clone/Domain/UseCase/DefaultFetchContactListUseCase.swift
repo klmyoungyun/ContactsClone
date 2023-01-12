@@ -16,16 +16,7 @@ final class DefaultFetchContactListUseCase: FetchContactListUseCase {
     self.contactRepository = contactRepository
   }
   
-  func execute() -> Observable<[Contact]> {
+  func execute() -> Observable<Result<[Contact], Error>> {
     return contactRepository.fetchContactList()
-      .map { result -> [Contact] in
-        switch result {
-        case .success(let model):
-          return model
-        case .failure(let error):
-          print(error.localizedDescription)
-          return []
-        }
-      }
   }
 }

@@ -32,7 +32,7 @@ public class ActivityIndicator: SharedSequenceConvertibleType {
       }, onCompleted: {
         self.sendStopLoading()
       }, onSubscribe: subscribed)
-        }
+  }
   
   private func subscribed() {
     _lock.lock()

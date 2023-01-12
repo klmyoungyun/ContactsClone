@@ -25,4 +25,8 @@ extension DefaultContactRepository: ContactRepository {
                                              company: "KAKAO",
                                              number: "010-1234-1234")]))
   }
+  
+  func createContact(with contact: Contact) -> Observable<Result<Void, Error>> {
+    return Observable.just(.success(()))
+  }
 }

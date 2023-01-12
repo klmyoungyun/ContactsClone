@@ -12,5 +12,5 @@ struct Contact {
   var firstName: String?
   var lastName: String?
   var company: String?
-  var number: String?
+  var number: String
 }

@@ -84,14 +84,19 @@ private extension ContactListViewController {
 
 private extension ContactListViewController {
   func bindViewModel() {
+    // INPUT
     let viewWillAppear = rx.viewWillAppear
       .asSignal()
     let pull = contactListView.refreshControl!.rx
       .controlEvent(.valueChanged)
       .asSignal()
     
+    let showDetailContact = contactListView.rx.modelSelected(Contact.self).asSignal()
+      
     let input = ContactListViewModel.Input(trigger: Signal.merge(viewWillAppear, pull),
-                                           createContactTrigger: createButton.rx.tap.asDriver())
+                                           showDetailContactTrigger: showDetailContact,
+                                           createContactTrigger: createButton.rx.tap.asSignal())
+    // OUTPUT
     let output = viewModel.transform(input: input)
     
     output.title
@@ -110,6 +115,10 @@ private extension ContactListViewController {
       .disposed(by: disposeBag)
     
     output.createContact
+      .drive()
+      .disposed(by: disposeBag)
+    
+    output.showDetailContact
       .drive()
       .disposed(by: disposeBag)
   }
