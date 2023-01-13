@@ -16,7 +16,7 @@ final class DefaultCreateContactUseCase: CreateContactUseCase {
     self.contactRepository = contactRepository
   }
   
-  func execute(with contact: Contact) -> Observable<Result<Void, Error>> {
+  func execute(with contact: Contact) -> Observable<Result<Contact, Error>> {
     return contactRepository.createContact(with: contact)
   }
 }

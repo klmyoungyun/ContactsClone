@@ -22,7 +22,7 @@ extension DefaultContactRepository: ContactRepository {
     return contactCoreDataStorage.findAll()
   }
   
-  func createContact(with contact: Contact) -> Observable<Result<Void, Error>> {
-    return Observable.just(.success(()))
+  func createContact(with contact: Contact) -> Observable<Result<Contact, Error>> {
+    return contactCoreDataStorage.createContact(contact)
   }
 }

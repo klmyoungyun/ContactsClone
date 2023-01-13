@@ -11,5 +11,5 @@ import RxSwift
 
 protocol ContactRepository {
   func fetchContactList() -> Observable<Result<[Contact], Error>>
-  func createContact(with contact: Contact) -> Observable<Result<Void, Error>>
+  func createContact(with contact: Contact) -> Observable<Result<Contact, Error>>
 }

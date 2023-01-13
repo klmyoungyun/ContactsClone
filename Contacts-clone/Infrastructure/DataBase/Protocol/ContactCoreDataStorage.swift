@@ -12,7 +12,7 @@ import RxSwift
 protocol ContactCoreDataStorage {
   func findAll() -> Observable<Result<[Contact], Error>>
   func findById(_ id: UUID)
-  func createContact(_ contactRequest: ContactRequestDTO)
+  func createContact(_ contact: Contact) -> Observable<Result<Contact, Error>>
   func deleteContact(_ id: UUID)
   func updateContact(id: UUID, contact: ContactRequestDTO)
 }
