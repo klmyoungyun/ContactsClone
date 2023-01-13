@@ -12,7 +12,8 @@ import Swinject
 final class RepositoryAssember: Assembly {
   func assemble(container: Container) {
     container.register(ContactRepository.self) { r in
-      let contactRepository = DefaultContactRepository()
+      let coredataStorage = r.resolve(ContactCoreDataStorage.self)!
+      let contactRepository = DefaultContactRepository(coreDataStorage: coredataStorage)
       return contactRepository
     }
   }

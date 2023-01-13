@@ -10,7 +10,6 @@ import Foundation
 import RxCocoa
 import RxSwift
 
-
 final class ContactListViewModel: ViewModelType {
   private final let fetchContactListUseCase: FetchContactListUseCase
   private final let coordinator: ContactListCoordinator
@@ -49,11 +48,11 @@ final class ContactListViewModel: ViewModelType {
         .trackError(errorTracker)
         .map { result -> [Contact] in
           switch result {
-          case .success(let model):
-            return model
-          case .failure(let error):
-            print(error.localizedDescription)
-            return []
+            case .success(let model):
+              return model
+            case .failure(let error):
+              print(error.localizedDescription)
+              return []
           }
         }
         .asDriverOnErrorJustComplete()
