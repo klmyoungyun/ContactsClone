@@ -22,5 +22,10 @@ final class ViewControllerAssembler: Assembly {
       let viewController = DetailContactViewController(viewModel: viewModel)
       return viewController
     }
+    
+    container.register(CreateContactViewController.self) { (r, viewModel: CreateContactViewModel) in
+      let viewController = CreateContactViewController(viewModel: viewModel)
+      return viewController
+    }
   }
 }

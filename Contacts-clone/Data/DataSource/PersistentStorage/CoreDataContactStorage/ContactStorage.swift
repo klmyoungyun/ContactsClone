@@ -10,9 +10,9 @@ import Foundation
 import RxSwift
 
 protocol ContactCoreDataStorage {
-  func findAll() -> Observable<Result<[Contact], Error>>
+  func findAll() -> Observable<Result<[Contact], ErrorType>>
   func findById(_ id: UUID)
-  func createContact(_ contact: Contact) -> Observable<Result<Contact, Error>>
+  func createContact(_ contact: Contact) -> Observable<Result<Contact, ErrorType>>
   func deleteContact(_ id: UUID)
   func updateContact(id: UUID, contact: ContactRequestDTO)
 }

@@ -9,19 +9,19 @@ import Foundation
 
 struct ContactResponseDTO: Decodable {
   var id: UUID
-  var firstName: String?
-  var lastName: String?
-  var company: String?
+  var firstName: String
+  var lastName: String
+  var company: String
   var number: String
-  var notes: String?
+  var notes: String
 }
 
 extension ContactResponseDTO {
   func toDomain() -> Contact {
-    return .init(id: id,
-                 firstName: firstName,
+    return .init(firstName: firstName,
                  lastName: lastName,
                  company: company,
-                 number: number)
+                 number: number,
+                 notes: notes)
   }
 }

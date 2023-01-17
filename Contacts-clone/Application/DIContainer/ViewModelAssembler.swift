@@ -23,5 +23,12 @@ final class ViewModelAssembler: Assembly {
       let viewModel = DetailContactViewModel(contact: contact)
       return viewModel
     }
+    
+    container.register(CreateContactViewModel.self) { (r, coordinator: ContactListCoordinator) in
+      let useCase = r.resolve(CreateContactUseCase.self)!
+      let viewModel = CreateContactViewModel(createContactUseCase: useCase,
+                                             coordinator: coordinator)
+      return viewModel
+    }
   }
 }

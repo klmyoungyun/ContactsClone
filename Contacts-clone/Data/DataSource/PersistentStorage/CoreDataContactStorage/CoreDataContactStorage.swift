@@ -1,5 +1,5 @@
 //
-//  DefaultContactCoreDataStorage.swift
+//  CoreDataContactStorage.swift
 //  Contacts-clone
 //
 //  Created by 김영균 on 2023/01/13.
@@ -10,9 +10,9 @@ import Foundation
 
 import RxSwift
 
-final class DefaultContactCoreDataStorage: ContactCoreDataStorage {
-  typealias ContactListResultObservable = Observable<Result<[Contact], Error>>
-  typealias ContactResultObservable = Observable<Result<Contact, Error>>
+final class CoreDataContactStorage: ContactStorage {
+  typealias ContactListResultObservable = Observable<Result<[Contact], ErrorType>>
+  typealias ContactResultObservable = Observable<Result<Contact, ErrorType>>
   
   // MARK: - Core Data stack
   
@@ -61,7 +61,7 @@ final class DefaultContactCoreDataStorage: ContactCoreDataStorage {
     return ContactResultObservable.create { observer in
       if let entity = entity {
         let managedObject = NSManagedObject(entity: entity, insertInto: self.mainContext)
-        managedObject.setValue(contact.id, forKey: "id")
+        managedObject.setValue(UUID(), forKey: "id")
         managedObject.setValue(contact.firstName, forKey: "firstName")
         managedObject.setValue(contact.lastName, forKey: "lastName")
         managedObject.setValue(contact.lastName, forKey: "lastName")
@@ -71,7 +71,7 @@ final class DefaultContactCoreDataStorage: ContactCoreDataStorage {
           try self.mainContext.save()
           observer.onNext(.success(contact))
         } catch {
-          observer.onNext(.failure(error))
+          observer.onNext(.failure(.coredataError))
         }
       }
       observer.onCompleted()

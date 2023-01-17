@@ -17,6 +17,12 @@ final class UseCaseAssembler: Assembly {
                                                                     contactRespository)
       return fetchContactListUseCase
     }
+    
+    container.register(CreateContactUseCase.self) { r in
+      let contactRepository = r.resolve(ContactRepository.self)!
+      let createContactUseCase = DefaultCreateContactUseCase(contactRepository: contactRepository)
+      return createContactUseCase
+    }
   }
   
 }
