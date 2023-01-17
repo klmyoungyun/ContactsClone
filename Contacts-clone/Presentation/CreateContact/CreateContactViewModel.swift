@@ -11,17 +11,23 @@ import RxCocoa
 import RxSwift
 
 final class CreateContactViewModel: ViewModelType {
+  private let disposeBag = DisposeBag()
   private let createContactUseCase: CreateContactUseCase
   private let coordinator: ContactListCoordinator
   
   struct Input {
     var cancelTrigger: Signal<Void>
-    var createTrigger: Signal<Contact>
+    var createTrigger: Signal<Void>
+    var firstName: Signal<String>
+    var lastName: Signal<String>
+    var company: Signal<String>
+    var number: Signal<String>
+    var note: Signal<String>
   }
   
   struct Output {
-    var cancel: Driver<Void>
-    var create: Driver<Void>
+    var title: Driver<String>
+    var doneButtonCanTap: Driver<Bool>
   }
   
   init(createContactUseCase: CreateContactUseCase,
@@ -33,28 +39,50 @@ final class CreateContactViewModel: ViewModelType {
   func transform(input: Input) -> Output {
     let errorTracker = ErrorTracker()
     
-    let cancel = input.cancelTrigger
-      .do(onNext: { [weak self] in
-        self?.coordinator.finish()
+    let title = Driver<String>.just("New Contact")
+    
+    input.cancelTrigger
+      .emit(onNext: { [weak self] in
+        self?.coordinator.closeModal()
       })
-      .asDriver(onErrorJustReturn: ())
-        
-    let create = input.createTrigger.flatMapFirst {
-      return self.createContactUseCase.execute(with: $0)
-        .trackError(errorTracker)
-        .map { result -> Void in
-          switch result {
-          case.success(_):
-            return
-          case .failure(let error):
-            print("create contact error: \(error.localizedDescription)")
-            return
-          }
+      .disposed(by: disposeBag)
+    
+    let combinedInput = Signal.combineLatest(input.firstName,
+                                             input.lastName,
+                                             input.company,
+                                             input.number,
+                                             input.note)
+    
+    let contact = combinedInput.map { ContactRequestDTO(firstName: $0,
+                                                        lastName: $1,
+                                                        company: $2,
+                                                        number: $3,
+                                                        notes: $4) }
+    
+    input.createTrigger.withLatestFrom(contact) { $1 }
+      .flatMapLatest { contact -> Signal<Result<Contact, ErrorType>> in
+        return self.createContactUseCase.execute(with: contact)
+          .trackError(errorTracker)
+          .asSignal(onErrorJustReturn: .failure(.coredataError))
+      }
+      .emit(onNext: { result in
+        switch result {
+        case .success(let model):
+          self.coordinator.closeModal()
+          print(model)
+        case .failure(let error):
+          break
         }
-        .asDriverOnErrorJustComplete()
-        .asDriver()
-    }
-    return Output(cancel: cancel,
-                  create: create)
+      })
+      .disposed(by: disposeBag)
+    
+    let doneButtonCanTap = combinedInput.map { fname, lname, cname, num, com in
+      return !fname.isEmpty || !lname.isEmpty || !cname.isEmpty || !num.isEmpty || !com.isEmpty
+      }
+      .startWith(false)
+      .asDriver(onErrorJustReturn: false)
+   
+    return Output(title: title,
+                  doneButtonCanTap: doneButtonCanTap)
   }
 }
