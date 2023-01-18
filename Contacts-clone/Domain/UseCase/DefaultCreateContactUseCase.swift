@@ -9,14 +9,16 @@ import Foundation
 
 import RxSwift
 
-final class DefaultCreateContactUseCase: CreateContactUseCase {
+final class DefaultCreateContactUseCase {
   private let contactRepository: ContactRepository
   
   init(contactRepository: ContactRepository) {
     self.contactRepository = contactRepository
   }
-  
-  func execute(with contact: Contact) -> Observable<Result<Contact, Error>> {
-    return contactRepository.createContact(with: contact)
+}
+
+extension DefaultCreateContactUseCase: CreateContactUseCase {
+  func execute(with information: Information) -> Observable<Result<Contact, ErrorType>> {
+    return contactRepository.createContact(for: information)
   }
 }

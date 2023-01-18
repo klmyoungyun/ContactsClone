@@ -10,5 +10,5 @@ import Foundation
 import RxSwift
 
 protocol CreateContactUseCase {
-  func execute(with contact: Contact) -> Observable<Result<Contact, Error>>
+  func execute(with information: Information) -> Observable<Result<Contact, ErrorType>>
 }

@@ -6,14 +6,16 @@
 //
 
 import CoreData
+import Foundation
 
 import RxSwift
 
 final class CoreDataContactStorage {
-  typealias ContactListResultObservable = Observable<Result<[Contact], ErrorType>>
-  typealias ContactResultObservable = Observable<Result<Contact, ErrorType>>
+  typealias ContactListResultObservable = Observable<Result<[ContactResponseDTO], ErrorType>>
+  typealias ContactResultObservable = Observable<Result<ContactResponseDTO, ErrorType>>
+  typealias ContactEmptyResultObservable = Observable<Result<Void, ErrorType>>
   
-  private static let entityName = "ContactEntitiy"
+  private static let entityName = "ContactEntity"
   private let coreDataStorage: CoreDataStorage
   
   init(coreDataStorage: CoreDataStorage) {
@@ -35,8 +37,8 @@ extension CoreDataContactStorage: ContactStorage {
       request.sortDescriptors = [sort]
       do {
         let result = try self.coreDataStorage.backgroundContext.fetch(request) as! [ContactEntity]
-        let contactList = result.map { $0.toResponseDTO().toDomain() }
-        observer.onNext(.success(contactList))
+        let contactResponse = result.map { $0.toResponseDTO() }
+        observer.onNext(.success(contactResponse))
       } catch {
         observer.onError(error)
       }
@@ -44,22 +46,29 @@ extension CoreDataContactStorage: ContactStorage {
     }
   }
   
-  func createContact(_ contact: Contact) -> ContactResultObservable {
+  func createContact(_ information: Information) -> ContactResultObservable {
     let context = coreDataStorage.backgroundContext
     let entity = NSEntityDescription.entity(forEntityName: CoreDataContactStorage.entityName,
                                             in: context)
     return ContactResultObservable.create { observer in
       if let entity = entity {
         let managedObject = NSManagedObject(entity: entity, insertInto: context)
-        managedObject.setValue(UUID(), forKey: "id")
-        managedObject.setValue(contact.firstName, forKey: "firstName")
-        managedObject.setValue(contact.lastName, forKey: "lastName")
-        managedObject.setValue(contact.lastName, forKey: "lastName")
-        managedObject.setValue(contact.number, forKey: "number")
-        managedObject.setValue(contact.notes, forKey: "notes")
+        let id = UUID()
+        managedObject.setValue(id, forKey: "id")
+        managedObject.setValue(information.firstName, forKey: "firstName")
+        managedObject.setValue(information.lastName, forKey: "lastName")
+        managedObject.setValue(information.lastName, forKey: "lastName")
+        managedObject.setValue(information.number, forKey: "number")
+        managedObject.setValue(information.notes, forKey: "notes")
         do {
           try context.save()
-          observer.onNext(.success(contact))
+          // 바꿔야함
+          observer.onNext(.success(ContactResponseDTO(id: id,
+                                                      firstName: information.firstName,
+                                                      lastName: information.lastName,
+                                                      company: information.company,
+                                                      number: information.number,
+                                                      notes: information.notes)))
         } catch {
           observer.onNext(.failure(.coredataError))
         }
@@ -68,17 +77,17 @@ extension CoreDataContactStorage: ContactStorage {
     }
   }
   
-  func deleteContact(for requestDTO: ContactRequestDTO) -> ContactResultObservable {
+  func deleteContact(for requestDTO: ContactRequestDTO) -> ContactEmptyResultObservable {
     let context = coreDataStorage.backgroundContext
     let request = fetchRequest(for: requestDTO)
     return Observable.create { observer in
       do {
         let contactList = try context.fetch(request)
-        contactList.forEach { contact in
+        if let contact = contactList.first {
           context.delete(contact as NSManagedObject)
+          try context.save()
+          observer.onNext(.success(()))
         }
-        try context.save()
-        observer.onNext(.success(contactList[0].toResponseDTO().toDomain()))
       } catch {
         observer.onNext(.failure(.coredataError))
       }

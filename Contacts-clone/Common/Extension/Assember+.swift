@@ -13,7 +13,7 @@ extension Assembler {
   static let shared: Assembler = {
     let assembler = Assembler(
       [
-        DataStoreAssembler(),
+        DataStorageAssembler(),
         RepositoryAssember(),
         UseCaseAssembler(),
         CoordinatorAssembler(),

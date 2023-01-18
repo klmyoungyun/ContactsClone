@@ -9,9 +9,13 @@ import Foundation
 
 struct Contact {
   var id: UUID
-  var firstName: String?
-  var lastName: String?
-  var company: String?
+  var information: Information
+}
+
+struct Information {
+  var firstName: String
+  var lastName: String
+  var company: String
   var number: String
-  var notes: String?
+  var notes: String
 }

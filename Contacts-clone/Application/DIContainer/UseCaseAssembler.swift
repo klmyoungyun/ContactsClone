@@ -23,6 +23,12 @@ final class UseCaseAssembler: Assembly {
       let createContactUseCase = DefaultCreateContactUseCase(contactRepository: contactRepository)
       return createContactUseCase
     }
+    
+    container.register(DeleteContactUseCase.self) { r in
+      let contactRepository = r.resolve(ContactRepository.self)!
+      let deleteContactUseCase = DefaultDeleteContactUseCase(contactRepository: contactRepository)
+      return deleteContactUseCase
+    }
   }
   
 }

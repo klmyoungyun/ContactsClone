@@ -87,6 +87,7 @@ private extension ContactListViewController {
     // INPUT
     let viewWillAppear = rx.viewWillAppear
       .asSignal()
+    
     let pull = contactListView.refreshControl!.rx
       .controlEvent(.valueChanged)
       .asSignal()

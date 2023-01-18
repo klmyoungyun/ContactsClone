@@ -10,6 +10,7 @@ import Foundation
 import RxSwift
 
 protocol ContactRepository {
-  func fetchContactList() -> Observable<Result<[Contact], Error>>
-  func createContact(with contact: Contact) -> Observable<Result<Contact, Error>>
+  func fetchContactList() -> Observable<Result<[Contact], ErrorType>>
+  func createContact(for information: Information) -> Observable<Result<Contact, ErrorType>>
+  func deleteContact(for contact: Contact) -> Observable<Result<Void, ErrorType>>
 }

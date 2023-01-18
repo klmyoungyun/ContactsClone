@@ -45,8 +45,8 @@ extension ContactCell {
   }
   
   func bind(with contact: Contact) {
-    let firstName = contact.firstName ?? ""
-    let lastName = contact.lastName ?? ""
+    let firstName = contact.information.firstName
+    let lastName = contact.information.lastName
     nameLabel.text = firstName + lastName
   }
 }

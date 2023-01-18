@@ -10,5 +10,5 @@ import Foundation
 import RxSwift
 
 protocol FetchContactListUseCase {
-  func execute() -> Observable<Result<[Contact], Error>>
+  func execute() -> Observable<Result<[Contact], ErrorType>>
 }

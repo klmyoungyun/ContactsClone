@@ -9,7 +9,7 @@ import Foundation
 
 extension ContactEntity {
   func toResponseDTO() -> ContactResponseDTO {
-    return ContactResponseDTO(id: self.value(forKey: "id") as! UUID,
+    return ContactResponseDTO(id: self.value(forKey: "id") as? UUID ?? UUID(),
                               firstName: self.value(forKey: "firstName") as? String ?? "",
                               lastName: self.value(forKey: "lastName") as? String ?? "",
                               company: self.value(forKey: "company") as? String ?? "",

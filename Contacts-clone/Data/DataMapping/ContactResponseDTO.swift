@@ -18,10 +18,13 @@ struct ContactResponseDTO: Decodable {
 
 extension ContactResponseDTO {
   func toDomain() -> Contact {
-    return .init(firstName: firstName,
-                 lastName: lastName,
-                 company: company,
-                 number: number,
-                 notes: notes)
+    return .init(id: id,
+                 information: .init(firstName: firstName,
+                                    lastName: lastName,
+                                    company: company,
+                                    number: number,
+                                    notes: notes)
+    )
+    
   }
 }

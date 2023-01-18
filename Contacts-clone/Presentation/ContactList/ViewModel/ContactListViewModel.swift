@@ -42,19 +42,20 @@ final class ContactListViewModel: ViewModelType {
     
     let title = Driver<String>.just("Contacts")
     let fetching = activityIndicator.asDriver()
-    let contactList = input.trigger.flatMapLatest {
-      return self.fetchContactListUseCase.execute()
-        .trackActivity(activityIndicator)
-        .trackError(errorTracker)
-        .map { result -> [Contact] in
-          switch result {
+    let contactList = input.trigger
+      .flatMapLatest {
+        return self.fetchContactListUseCase.execute()
+          .trackActivity(activityIndicator)
+          .trackError(errorTracker)
+          .map { result -> [Contact] in
+            switch result {
             case .success(let model):
               return model
             case .failure(let error):
               print(error.localizedDescription)
               return []
+            }
           }
-        }
         .asDriverOnErrorJustComplete()
         .asDriver()
     }

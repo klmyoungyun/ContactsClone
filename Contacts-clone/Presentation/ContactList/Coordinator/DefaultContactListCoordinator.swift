@@ -12,6 +12,8 @@ import Swinject
 protocol ContactListCoordinator: Coordinator {
   func showDetailContactFlow(with contact: Contact)
   func createContactFlow()
+  func closeModal()
+  func closeViewController()
 }
 
 final class DefaultContactListCoordinator: ContactListCoordinator {
@@ -29,7 +31,8 @@ final class DefaultContactListCoordinator: ContactListCoordinator {
   }
   
   func start() {
-    let viewModel = Assembler.shared.resolver.resolve(ContactListViewModel.self, argument: self as ContactListCoordinator)!
+    let viewModel = Assembler.shared.resolver.resolve(ContactListViewModel.self,
+                                                      argument: self as ContactListCoordinator)!
     let viewController = Assembler.shared.resolver.resolve(ContactListViewController.self,
                                                            argument: viewModel)!
     navigationController.pushViewController(viewController, animated: true)
@@ -37,26 +40,26 @@ final class DefaultContactListCoordinator: ContactListCoordinator {
   
   func showDetailContactFlow(with contact: Contact) {
     let viewModel = Assembler.shared.resolver.resolve(DetailContactViewModel.self,
-                                                      argument: contact)!
+                                                      arguments: contact, self as ContactListCoordinator)!
     let viewController = Assembler.shared.resolver.resolve(DetailContactViewController.self,
                                                            argument: viewModel)!
     navigationController.pushViewController(viewController, animated: true)
   }
   
   func createContactFlow() {
-    
+    let viewModel = Assembler.shared.resolver.resolve(CreateContactViewModel.self,
+                                                      argument: self as ContactListCoordinator)!
+    let viewController = Assembler.shared.resolver.resolve(CreateContactViewController.self,
+                                                           argument: viewModel)!
+    let navVC = UINavigationController(rootViewController: viewController)
+    navigationController.present(navVC, animated: true)
   }
-}
-
-extension DefaultContactListCoordinator: CoordinatorFinishDelegate {
-  func coordinatorDidFinish(childCoordinator: Coordinator) {
-    childCoordinators = childCoordinators.filter { $0.type != childCoordinator.type }
-    navigationController.viewControllers.removeAll()
-    switch childCoordinator.type {
-    case .detail:
-      break
-    default:
-      break
-    }
+  
+  func closeModal() {
+    navigationController.dismiss(animated: false)
+  }
+     
+  func closeViewController() {
+    navigationController.popViewController(animated: true)
   }
 }

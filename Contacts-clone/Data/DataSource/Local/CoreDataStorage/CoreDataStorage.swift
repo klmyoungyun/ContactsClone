@@ -6,6 +6,7 @@
 //
 
 import CoreData
+import Foundation
 
 enum CoreDataStorageError: Error {
   case readError(Error)

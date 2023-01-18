@@ -9,14 +9,16 @@ import Foundation
 
 import RxSwift
 
-final class DefaultFetchContactListUseCase: FetchContactListUseCase {
+final class DefaultFetchContactListUseCase {
   private let contactRepository: ContactRepository
   
   init(contactRepository: ContactRepository) {
     self.contactRepository = contactRepository
   }
-  
-  func execute() -> Observable<Result<[Contact], Error>> {
+}
+
+extension DefaultFetchContactListUseCase: FetchContactListUseCase {
+  func execute() -> Observable<Result<[Contact], ErrorType>> {
     return contactRepository.fetchContactList()
   }
 }

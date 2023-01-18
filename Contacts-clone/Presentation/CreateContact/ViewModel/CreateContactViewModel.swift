@@ -53,15 +53,15 @@ final class CreateContactViewModel: ViewModelType {
                                              input.number,
                                              input.note)
     
-    let contact = combinedInput.map { ContactRequestDTO(firstName: $0,
-                                                        lastName: $1,
-                                                        company: $2,
-                                                        number: $3,
-                                                        notes: $4) }
+    let information = combinedInput.map { Information(firstName: $0,
+                                                  lastName: $1,
+                                                  company: $2,
+                                                  number: $3,
+                                                  notes: $4) }
     
-    input.createTrigger.withLatestFrom(contact) { $1 }
-      .flatMapLatest { contact -> Signal<Result<Contact, ErrorType>> in
-        return self.createContactUseCase.execute(with: contact)
+    input.createTrigger.withLatestFrom(information) { $1 }
+      .flatMapLatest { information -> Signal<Result<Contact, ErrorType>> in
+        return self.createContactUseCase.execute(with: information)
           .trackError(errorTracker)
           .asSignal(onErrorJustReturn: .failure(.coredataError))
       }
@@ -69,8 +69,8 @@ final class CreateContactViewModel: ViewModelType {
         switch result {
         case .success(let model):
           self.coordinator.closeModal()
-          print(model)
-        case .failure(let error):
+          self.coordinator.showDetailContactFlow(with: model)
+        case .failure:
           break
         }
       })
