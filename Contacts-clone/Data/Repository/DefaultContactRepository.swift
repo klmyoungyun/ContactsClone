@@ -41,7 +41,13 @@ extension DefaultContactRepository: ContactRepository {
   }
   
   func deleteContact(for contact: Contact) -> Observable<Result<Void, ErrorType>> {
-    let requestDTO = ContactRequestDTO(id: contact.id)
+    let informationDTO = InformationDTO(firstName: contact.information.firstName,
+                                        lastName: contact.information.lastName,
+                                        company: contact.information.company,
+                                        number: contact.information.number,
+                                        notes: contact.information.notes)
+    let requestDTO = ContactRequestDTO(id: contact.id,
+                                       information: informationDTO)
     return contactCoreDataStorage.deleteContact(for: requestDTO).map { result in
       switch result {
       case .success:

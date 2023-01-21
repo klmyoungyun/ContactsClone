@@ -32,11 +32,11 @@ final class CoreDataContactStorage {
 extension CoreDataContactStorage: ContactStorage {
   func findAll() -> ContactListResultObservable {
     return ContactListResultObservable.create { observer in
-      let request = NSFetchRequest<NSManagedObject>(entityName: CoreDataContactStorage.entityName)
+      let request: NSFetchRequest<ContactEntity> = ContactEntity.fetchRequest()
       let sort = NSSortDescriptor(key: "firstName", ascending: true)
       request.sortDescriptors = [sort]
       do {
-        let result = try self.coreDataStorage.backgroundContext.fetch(request) as! [ContactEntity]
+        let result = try self.coreDataStorage.backgroundContext.fetch(request)
         let contactResponse = result.map { $0.toResponseDTO() }
         observer.onNext(.success(contactResponse))
       } catch {
@@ -48,30 +48,27 @@ extension CoreDataContactStorage: ContactStorage {
   
   func createContact(_ information: Information) -> ContactResultObservable {
     let context = coreDataStorage.backgroundContext
-    let entity = NSEntityDescription.entity(forEntityName: CoreDataContactStorage.entityName,
-                                            in: context)
     return ContactResultObservable.create { observer in
-      if let entity = entity {
-        let managedObject = NSManagedObject(entity: entity, insertInto: context)
-        let id = UUID()
-        managedObject.setValue(id, forKey: "id")
-        managedObject.setValue(information.firstName, forKey: "firstName")
-        managedObject.setValue(information.lastName, forKey: "lastName")
-        managedObject.setValue(information.lastName, forKey: "lastName")
-        managedObject.setValue(information.number, forKey: "number")
-        managedObject.setValue(information.notes, forKey: "notes")
-        do {
-          try context.save()
-          // 바꿔야함
-          observer.onNext(.success(ContactResponseDTO(id: id,
-                                                      firstName: information.firstName,
-                                                      lastName: information.lastName,
-                                                      company: information.company,
-                                                      number: information.number,
-                                                      notes: information.notes)))
-        } catch {
-          observer.onNext(.failure(.coredataError))
-        }
+      
+      let contact = ContactEntity(context: context)
+      let id = UUID()
+      contact.id = id
+      contact.firstName = information.firstName
+      contact.lastName = information.lastName
+      contact.number = information.number
+      contact.notes = information.notes
+      contact.company = information.company
+      do {
+        try context.save()
+        // 바꿔야함
+        observer.onNext(.success(ContactResponseDTO(id: id,
+                                                    firstName: information.firstName,
+                                                    lastName: information.lastName,
+                                                    company: information.company,
+                                                    number: information.number,
+                                                    notes: information.notes)))
+      } catch {
+        observer.onNext(.failure(.coredataError))
       }
       return Disposables.create()
     }
@@ -84,7 +81,7 @@ extension CoreDataContactStorage: ContactStorage {
       do {
         let contactList = try context.fetch(request)
         if let contact = contactList.first {
-          context.delete(contact as NSManagedObject)
+          context.delete(contact)
           try context.save()
           observer.onNext(.success(()))
         }
@@ -96,7 +93,22 @@ extension CoreDataContactStorage: ContactStorage {
   }
   
   func updateContact(for requestDTO: ContactRequestDTO) -> ContactResultObservable {
+    let context = coreDataStorage.backgroundContext
+    let request = fetchRequest(for: requestDTO)
+    let information = requestDTO.information
     return Observable.create { observer in
+      do {
+        if let contact = try context.fetch(request).first {
+          contact.firstName = information.firstName
+          contact.lastName = information.lastName
+          contact.number = information.number
+          contact.number = information.number
+          contact.company = information.company
+          try context.save()
+        }
+      } catch {
+        observer.onNext(.failure(.coredataError))
+      }
       return Disposables.create()
     }
   }

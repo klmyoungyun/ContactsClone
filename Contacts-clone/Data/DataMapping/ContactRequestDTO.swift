@@ -9,4 +9,13 @@ import Foundation
 
 struct ContactRequestDTO: Encodable {
   var id: UUID
+  var information: InformationDTO
+}
+
+struct InformationDTO: Encodable {
+  var firstName: String
+  var lastName: String
+  var company: String
+  var number: String
+  var notes: String
 }
